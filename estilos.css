@@ -1,0 +1,157 @@
+
+/* Configuración general */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #07182e, #123d63);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 15px;
+}
+
+/* Contenedor principal */
+.contenedor {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+}
+
+/* Logo */
+.logo {
+    width: 130px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+/* Títulos */
+h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+h2 {
+    font-size: 18px;
+    font-weight: normal;
+    color: #b9d9f5;
+    margin-bottom: 25px;
+}
+
+/* Tarjeta del formulario */
+.tarjeta {
+    background-color: #ffffff;
+    color: #243447;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Etiquetas */
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    margin-top: 15px;
+}
+
+/* Campos de entrada */
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus {
+    border-color: #1677d2;
+    box-shadow: 0 0 0 3px rgba(22, 119, 210, 0.15);
+}
+
+/* Botón */
+button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 25px;
+    background-color: #1677d2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #0e5eaa;
+    transform: translateY(-2px);
+}
+
+/* Enlace para recuperar contraseña */
+.recuperar {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    color: #1677d2;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.recuperar:hover {
+    text-decoration: underline;
+}
+
+/* Línea divisoria */
+hr {
+    border: none;
+    border-top: 1px solid #52708c;
+    margin: 30px 0 20px;
+}
+
+/* Información inferior */
+.informacion {
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #e0ebf5;
+}
+
+.informacion p {
+    margin-bottom: 10px;
+}
+
+.informacion ul {
+    padding-left: 25px;
+}
+
+/* Adaptación a celulares */
+@media (max-width: 480px) {
+    .tarjeta {
+        padding: 22px;
+    }
+
+    h1 {
+        font-size: 27px;
+    }
+
+    h2 {
+        font-size: 16px;
+    }
+
+    .logo {
+        width: 105px;
+    }
+}
