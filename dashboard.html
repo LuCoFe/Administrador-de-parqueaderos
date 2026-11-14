@@ -531,7 +531,7 @@
   <div class="page-header">
     <div>
       <h1>Mapa de <span>Parqueadero</span></h1>
-      <p>Conjunto Residencial · 30 celdas · Zonas A, B y C</p>
+      <p>Conjunto Residencial · 60 celdas · Zonas A, B, C, D, E y F</p>
     </div>
     <div class="clock">
       <strong id="reloj">--:--:--</strong>
@@ -600,6 +600,36 @@
       <div class="zona-count">Celdas C-01 a C-10</div>
     </div>
     <div class="celdas-grid" id="zona-C"></div>
+  </div>
+
+  <!-- ZONA D -->
+  <div class="zona">
+    <div class="zona-header">
+      <div class="zona-badge">🇩 Zona D</div>
+      <hr>
+      <div class="zona-count">Celdas D-01 a D-10</div>
+    </div>
+    <div class="celdas-grid" id="zona-D"></div>
+  </div>
+
+  <!-- ZONA E -->
+  <div class="zona">
+    <div class="zona-header">
+      <div class="zona-badge">🇪 Zona E</div>
+      <hr>
+      <div class="zona-count">Celdas E-01 a E-10</div>
+    </div>
+    <div class="celdas-grid" id="zona-E"></div>
+  </div>
+
+  <!-- ZONA F -->
+  <div class="zona">
+    <div class="zona-header">
+      <div class="zona-badge">🇫 Zona F · ♿ Especial</div>
+      <hr>
+      <div class="zona-count">Celdas F-01 a F-10</div>
+    </div>
+    <div class="celdas-grid" id="zona-F"></div>
   </div>
 
 </div><!-- /main -->
@@ -722,7 +752,8 @@ function generarCeldas(zona, cantidad) {
   return Array.from({length:cantidad},(_,i)=>{
     const num = String(i+1).padStart(2,'0');
     const id  = `${zona}-${num}`;
-    const esDisc = (zona==='C' && i===0);
+    // Zona F es toda de discapacidad, C-01 también
+    const esDisc = (zona==='F') || (zona==='C' && i===0);
     const estado = esDisc ? 'discapacidad' : estados[Math.floor(Math.random()*estados.length)];
     const colorIdx = Math.floor(Math.random()*COLORES_CARROS.length);
     const tipo = Math.random()>.5?'suv':'sedan';
@@ -743,6 +774,9 @@ const CELDAS = {
   A: generarCeldas('A', 10),
   B: generarCeldas('B', 10),
   C: generarCeldas('C', 10),
+  D: generarCeldas('D', 10),
+  E: generarCeldas('E', 10),
+  F: generarCeldas('F', 10),
 };
 
 let celdaActual = null;
@@ -813,7 +847,7 @@ function renderZona(zona) {
 }
 
 function actualizarKPIs() {
-  const todas = [...CELDAS.A,...CELDAS.B,...CELDAS.C];
+  const todas = [...CELDAS.A,...CELDAS.B,...CELDAS.C,...CELDAS.D,...CELDAS.E,...CELDAS.F];
   document.getElementById('cnt-libre').textContent   = todas.filter(c=>c.estado==='libre').length;
   document.getElementById('cnt-ocupada').textContent = todas.filter(c=>c.estado==='ocupada').length;
   document.getElementById('cnt-visitante').textContent=todas.filter(c=>c.estado==='visitante').length;
@@ -824,7 +858,7 @@ function actualizarKPIs() {
 //  MODAL
 // ══════════════════════════════════════════════
 function buscarCelda(id) {
-  return [...CELDAS.A,...CELDAS.B,...CELDAS.C].find(c=>c.id===id);
+  return [...CELDAS.A,...CELDAS.B,...CELDAS.C,...CELDAS.D,...CELDAS.E,...CELDAS.F].find(c=>c.id===id);
 }
 
 function abrirModal(id) {
@@ -938,6 +972,9 @@ function actualizarReloj() {
   renderZona('A');
   renderZona('B');
   renderZona('C');
+  renderZona('D');
+  renderZona('E');
+  renderZona('F');
   actualizarKPIs();
   actualizarReloj();
   setInterval(actualizarReloj, 1000);
