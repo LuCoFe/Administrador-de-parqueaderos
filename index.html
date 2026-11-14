@@ -3,65 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ParkControl - Iniciar sesión</title>
-    <link rel="stylesheet" href="estilos.css">
+    <title>ParkControl — Ingreso al Sistema</title>
+    <meta name="description" content="Sistema de administración de parqueaderos para conjuntos residenciales.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:'Inter',sans-serif;
+            min-height:100vh;
+            display:flex;
+            overflow:hidden;
+            background:#07182e;
+        }
 
+        /* ===== LADO IZQUIERDO ===== */
+        .left-panel{
+            flex:1;
+            position:relative;
+            display:flex;
+            flex-direction:column;
+            justify-content:flex-end;
+            padding:48px;
+            overflow:hidden;
+        }
+
+        /* Fondo animado con carros CSS */
+        .left-bg{
+            position:absolute;
+            inset:0;
+            background:linear-gradient(135deg,#07182e 0%,#0d2d4a 40%,#123d63 100%);
+            overflow:hidden;
+        }
+
+        /* Patrón de parqueadero en el fondo */
+        .parking-grid{
+            position:absolute;
+            inset:0;
+            opacity:.08;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 79px, #fff 79px, #fff 81px),
+                repeating-linear-gradient(90deg, transparent, transparent 119px, #fff 119px, #fff 121px);
+        }
+
+        /* Carros animados en el fondo */
+        .bg-cars{position:absolute;inset:0;pointer-events:none;}
+        .bg-car{
+            position:absolute;
+            width:60px;
+            opacity:0;
+            animation:driveCar 8s linear infinite;
+        }
+        .bg-car:nth-child(1){top:15%;left:-80px;animation-delay:0s;animation-duration:9s;}
+        .bg-car:nth-child(2){top:35%;left:-80px;animation-delay:2s;animation-duration:7s;}
+        .bg-car:nth-child(3){top:55%;left:-80px;animation-delay:4s;animation-duration:11s;}
+        .bg-car:nth-child(4){top:70%;left:-80px;animation-delay:1s;animation-duration:8s;}
+        .bg-car:nth-child(5){top:85%;left:-80px;animation-delay:3s;animation-duration:10s;}
+        @keyframes driveCar{
+            0%{left:-80px;opacity:0;}
+            5%{opacity:.18;}
+            90%{opacity:.18;}
+            100%{left:calc(100% + 80px);opacity:0;}
+        }
+
+        .left-panel::after{
+            content:'';
+            position:absolute;
+            inset:0;
+            background:linear-gradient(to top, rgba(7,24,46,0.95) 0%, rgba(7,24,46,0.3) 60%, transparent 100%);
+        }
+        .left-content{
+            position:relative;
+            z-index:1;
+            color:white;
+        }
+        .left-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            background:rgba(22,119,210,0.25);
+            border:1px solid rgba(22,119,210,0.5);
+            backdrop-filter:blur(8px);
+            padding:8px 16px;
+            border-radius:50px;
+            font-size:13px;
+            font-weight:600;
+            color:#63b3ed;
+            margin-bottom:20px;
+        }
+        .left-badge .dot{
+            width:8px;height:8px;
+            background:#22c55e;
+            border-radius:50%;
+            animation:pulse 2s infinite;
+        }
+        @keyframes pulse{
+            0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}
+            50%{box-shadow:0 0 0 6px rgba(34,197,94,0)}
+        }
+        .left-content h1{
+            font-size:42px;
+            font-weight:900;
+            line-height:1.15;
+            margin-bottom:16px;
+            color:#fff;
+            text-shadow:0 2px 12px rgba(0,0,0,0.5);
+        }
+        .left-content h1 span{
+            background:linear-gradient(135deg,#63b3ed,#a78bfa);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+            background-clip:text;
+        }
+        .left-content p{
+            font-size:16px;
+            color:rgba(255,255,255,0.75);
+            line-height:1.7;
+            max-width:420px;
+            margin-bottom:28px;
+        }
+        .features{
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+        .feature-item{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            background:rgba(255,255,255,0.07);
+            border:1px solid rgba(255,255,255,0.12);
+            backdrop-filter:blur(8px);
+            border-radius:12px;
+            padding:12px 16px;
+            font-size:14px;
+            color:rgba(255,255,255,0.85);
+            transition:background .2s;
+        }
+        .feature-item:hover{background:rgba(255,255,255,0.12);}
+        .feature-icon{
+            font-size:20px;
+            width:36px;
+            text-align:center;
+        }
+
+        /* ===== LADO DERECHO — FORMULARIO ===== */
+        .right-panel{
+            width:480px;
+            flex-shrink:0;
+            background:#f0f4f8;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            padding:48px 44px;
+            overflow-y:auto;
+        }
+        .login-logo{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:36px;
+        }
+        .login-logo img{
+            width:130px;
+            height:auto;
+        }
+        .login-title{
+            font-size:26px;
+            font-weight:800;
+            color:#07182e;
+            margin-bottom:6px;
+        }
+        .login-sub{
+            font-size:14px;
+            color:#64748b;
+            margin-bottom:32px;
+            line-height:1.5;
+        }
+        .form-label{
+            display:block;
+            font-size:12px;
+            font-weight:700;
+            color:#374151;
+            letter-spacing:.6px;
+            text-transform:uppercase;
+            margin-bottom:7px;
+        }
+        .form-group{margin-bottom:20px;}
+        .input-wrap{position:relative;}
+        .input-icon{
+            position:absolute;
+            left:14px;
+            top:50%;
+            transform:translateY(-50%);
+            font-size:16px;
+            color:#94a3b8;
+            pointer-events:none;
+        }
+        .form-control{
+            width:100%;
+            padding:13px 14px 13px 42px;
+            border:1.5px solid #e2e8f0;
+            border-radius:10px;
+            font-size:14px;
+            font-family:'Inter',sans-serif;
+            background:#fff;
+            color:#1e2d3d;
+            outline:none;
+            transition:border-color .25s,box-shadow .25s;
+        }
+        .form-control:focus{
+            border-color:#1677d2;
+            box-shadow:0 0 0 3px rgba(22,119,210,.13);
+        }
+        .toggle-pass{
+            position:absolute;
+            right:14px;
+            top:50%;
+            transform:translateY(-50%);
+            cursor:pointer;
+            font-size:16px;
+            color:#94a3b8;
+            user-select:none;
+            transition:color .2s;
+        }
+        .toggle-pass:hover{color:#1677d2;}
+        .forgot{
+            text-align:right;
+            margin-top:-12px;
+            margin-bottom:20px;
+        }
+        .forgot a{
+            font-size:13px;
+            color:#1677d2;
+            text-decoration:none;
+            font-weight:500;
+        }
+        .forgot a:hover{text-decoration:underline;}
+        .btn-login{
+            width:100%;
+            padding:14px;
+            background:linear-gradient(135deg,#1677d2 0%,#7c3aed 100%);
+            color:#fff;
+            border:none;
+            border-radius:10px;
+            font-size:15px;
+            font-weight:700;
+            font-family:'Inter',sans-serif;
+            cursor:pointer;
+            transition:all .3s;
+            position:relative;
+            overflow:hidden;
+            letter-spacing:.2px;
+        }
+        .btn-login::before{
+            content:'';
+            position:absolute;
+            top:0;left:-100%;
+            width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+            transition:left .5s;
+        }
+        .btn-login:hover::before{left:100%;}
+        .btn-login:hover{
+            transform:translateY(-2px);
+            box-shadow:0 8px 25px rgba(22,119,210,.45);
+        }
+        .btn-login:active{transform:translateY(0);}
+        .error-box{
+            display:none;
+            background:#fee2e2;
+            border:1px solid #fca5a5;
+            color:#b91c1c;
+            padding:10px 14px;
+            border-radius:8px;
+            font-size:13px;
+            text-align:center;
+            margin-bottom:16px;
+        }
+        .hint-box{
+            margin-top:24px;
+            background:linear-gradient(135deg,rgba(22,119,210,.08),rgba(124,58,237,.08));
+            border:1px solid rgba(22,119,210,.2);
+            border-radius:10px;
+            padding:14px 16px;
+            font-size:12.5px;
+            color:#475569;
+        }
+        .hint-box strong{color:#1677d2;}
+        .hint-row{display:flex;justify-content:space-between;margin-bottom:4px;}
+        .hint-row:last-child{margin-bottom:0;}
+
+        @media(max-width:900px){
+            .left-panel{display:none;}
+            .right-panel{width:100%;padding:40px 28px;}
+        }
+
+        @keyframes shake{
+            0%,100%{transform:translateX(0)}
+            20%{transform:translateX(-8px)}
+            40%{transform:translateX(8px)}
+            60%{transform:translateX(-5px)}
+            80%{transform:translateX(5px)}
+        }
+    </style>
 </head>
 <body>
-    <main class="contenedor">
-    
-<img src="ParkControl.png" alt="Logo de ParkControl" class="logo"> 
 
-<h1>Bienvenido</h1>
-<h2>Sistema de gestión de parqueaderos</h2>
+<!-- PANEL IZQUIERDO -->
+<div class="left-panel">
+    <div class="left-bg">
+        <div class="parking-grid"></div>
+        <!-- Carros en el fondo -->
+        <div class="bg-cars">
+            <!-- Carro SVG top-view mini -->
+            <svg class="bg-car" style="top:15%" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="14" width="80" height="22" rx="7" fill="#2b6cb0"/>
+                <path d="M28 14 Q35 5 65 5 Q75 5 80 14 Z" fill="#1a4a80"/>
+                <circle cx="20" cy="14" r="6" fill="#111"/><circle cx="80" cy="14" r="6" fill="#111"/>
+                <circle cx="20" cy="36" r="6" fill="#111"/><circle cx="80" cy="36" r="6" fill="#111"/>
+            </svg>
+            <svg class="bg-car" style="top:35%" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="10" width="84" height="30" rx="8" fill="#553c9a"/>
+                <rect x="20" y="13" width="60" height="22" rx="5" fill="#3c2a7a"/>
+                <circle cx="14" cy="13" r="6" fill="#111"/><circle cx="86" cy="13" r="6" fill="#111"/>
+                <circle cx="14" cy="37" r="6" fill="#111"/><circle cx="86" cy="37" r="6" fill="#111"/>
+            </svg>
+            <svg class="bg-car" style="top:55%" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="14" width="80" height="22" rx="7" fill="#c05621"/>
+                <path d="M28 14 Q35 5 65 5 Q75 5 80 14 Z" fill="#9c4421"/>
+                <circle cx="20" cy="14" r="6" fill="#111"/><circle cx="80" cy="14" r="6" fill="#111"/>
+                <circle cx="20" cy="36" r="6" fill="#111"/><circle cx="80" cy="36" r="6" fill="#111"/>
+            </svg>
+            <svg class="bg-car" style="top:70%" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="10" width="84" height="30" rx="8" fill="#276749"/>
+                <rect x="20" y="13" width="60" height="22" rx="5" fill="#1a4a35"/>
+                <circle cx="14" cy="13" r="6" fill="#111"/><circle cx="86" cy="13" r="6" fill="#111"/>
+                <circle cx="14" cy="37" r="6" fill="#111"/><circle cx="86" cy="37" r="6" fill="#111"/>
+            </svg>
+            <svg class="bg-car" style="top:85%" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="14" width="80" height="22" rx="7" fill="#9b2c2c"/>
+                <path d="M28 14 Q35 5 65 5 Q75 5 80 14 Z" fill="#7a2020"/>
+                <circle cx="20" cy="14" r="6" fill="#111"/><circle cx="80" cy="14" r="6" fill="#111"/>
+                <circle cx="20" cy="36" r="6" fill="#111"/><circle cx="80" cy="36" r="6" fill="#111"/>
+            </svg>
+        </div>
+    </div>
 
+    <div class="left-content">
+        <div class="left-badge">
+            <div class="dot"></div>
+            🏢 Conjunto Residencial · En línea
+        </div>
+        <h1>Gestión Inteligente de <span>Parqueaderos</span></h1>
+        <p>Administra las celdas del edificio, registra entradas y salidas, controla visitantes y genera reportes en tiempo real.</p>
+        <div class="features">
+            <div class="feature-item">
+                <span class="feature-icon">🅿️</span>
+                <div><strong>30 celdas</strong> distribuidas en zonas A, B y C</div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🚗</span>
+                <div>Carros con <strong>vista en tiempo real</strong> por celda</div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <div><strong>Reportes y estadísticas</strong> en tiempo real</div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">♿</span>
+                <div>Celdas especiales para <strong>discapacidad</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<section class="tarjeta">
+<!-- PANEL DERECHO -->
+<div class="right-panel">
+    <div class="login-logo">
+        <img src="ParkControl.png" alt="ParkControl">
+    </div>
 
-    <form>
-        <label for="usuario">Ingrese su usuario:</label>
-        <input
-            id="usuario"
-            name="usuario"
-            type="email"
-            placeholder="admin@urb.com"
-            required
-        >
+    <div class="login-title">Bienvenido 👋</div>
+    <div class="login-sub">Ingresa tus credenciales para acceder al sistema de administración del parqueadero residencial.</div>
 
-        <label for="contrasena">Ingrese su contraseña:</label>
-        <input
-            id="contrasena"
-            name="contrasena"
-            type="password"
-            placeholder="Contraseña"
-            required
-        >
+    <div class="error-box" id="errorBox">❌ Usuario o contraseña incorrectos. Intente de nuevo.</div>
 
-        <button type="submit">Enviar</button>
+    <form id="loginForm" novalidate>
+        <div class="form-group">
+            <label class="form-label" for="email">Correo electrónico</label>
+            <div class="input-wrap">
+                <span class="input-icon">📧</span>
+                <input class="form-control" type="email" id="email" name="email"
+                    placeholder="admin@parqueadero.com" autocomplete="email" required>
+            </div>
+        </div>
 
-        <a href="recuperar.html" class="recuperar">
-            ¿Olvidó su contraseña?
-        </a>
+        <div class="form-group">
+            <label class="form-label" for="password">Contraseña</label>
+            <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input class="form-control" type="password" id="password" name="password"
+                    placeholder="••••••••" autocomplete="current-password" required>
+                <span class="toggle-pass" id="togglePass" title="Mostrar/ocultar contraseña">👁️</span>
+            </div>
+        </div>
+
+        <div class="forgot">
+            <a href="#" onclick="alert('Contacte al administrador del edificio.')">¿Olvidó su contraseña?</a>
+        </div>
+
+        <button type="submit" class="btn-login" id="btnLogin">
+            🔐 Iniciar Sesión
+        </button>
     </form>
 
-</section>
-        
-      <hr>
-     
-    
-<section class="informacion">
-            <p>
-                Manténgase informado sobre las últimas actualizaciones
-                de control de parqueaderos en su copropiedad.
-            </p>
+    <div class="hint-box">
+        <div style="font-weight:700;color:#374151;margin-bottom:8px;">🔑 Credenciales de acceso:</div>
+        <div class="hint-row"><span><strong>Administrador:</strong> admin@parqueadero.com</span><span style="color:#1677d2;font-weight:600;">admin123</span></div>
+        <div class="hint-row"><span><strong>Portería:</strong> porteria@parqueadero.com</span><span style="color:#7c3aed;font-weight:600;">park2024</span></div>
+    </div>
+</div>
 
-            <ul>
-                <li>Registro automático de visitantes.</li>
-                <li>Reportes de uso de celdas en tiempo real.</li>
-                <li>Alertas de seguridad integradas.</li>
-            </ul>
-        </section>
-       </main>
+<script>
+    const USUARIOS = [
+        { email:'admin@parqueadero.com',   password:'admin123', nombre:'Administrador',  rol:'admin' },
+        { email:'admin@parkcontrol.com',   password:'admin123', nombre:'Administrador',  rol:'admin' },
+        { email:'admin@urb.com',           password:'admin123', nombre:'Admin Conjunto',  rol:'admin' },
+        { email:'porteria@parqueadero.com',password:'park2024', nombre:'Portería',        rol:'porteria' },
+    ];
 
-    </body>
+    document.getElementById('togglePass').addEventListener('click', function() {
+        const inp = document.getElementById('password');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            this.textContent = '🙈';
+        } else {
+            inp.type = 'password';
+            this.textContent = '👁️';
+        }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim().toLowerCase();
+        const pass  = document.getElementById('password').value;
+        const errorBox = document.getElementById('errorBox');
+        const btn = document.getElementById('btnLogin');
+
+        const user = USUARIOS.find(u => u.email === email && u.password === pass);
+
+        if (user) {
+            btn.textContent = '✅ Verificando...';
+            btn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+            errorBox.style.display = 'none';
+            localStorage.setItem('parkcontrol_user', JSON.stringify(user));
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+        } else {
+            errorBox.style.display = 'block';
+            document.getElementById('password').value = '';
+            document.getElementById('email').focus();
+            errorBox.style.animation = 'none';
+            errorBox.offsetHeight;
+            errorBox.style.animation = 'shake .4s ease';
+        }
+    });
+</script>
+</body>
 </html>

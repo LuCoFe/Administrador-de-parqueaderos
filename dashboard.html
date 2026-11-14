@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ParkControl — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --azul:#1677d2;
+      --azul-oscuro:#07182e;
+      --azul-medio:#123d63;
+      --verde:#16a34a;
+      --rojo:#dc2626;
+      --amarillo:#d97706;
+      --celda-libre:#e8f5e9;
+      --celda-ocupada:#fef3c7;
+      --celda-visitante:#eff6ff;
+      --celda-discapacidad:#f3e8ff;
+    }
+
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,var(--azul-oscuro),var(--azul-medio));
+      min-height:100vh;
+      color:white;
+    }
+
+    /* ═══ NAVBAR ═══ */
+    .navbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 28px;
+      background:rgba(255,255,255,0.06);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+    .navbar-brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .navbar-brand img{
+      height:36px;
+      width:auto;
+    }
+    .navbar-brand span{
+      font-size:18px;
+      font-weight:800;
+      color:#fff;
+    }
+    .navbar-right{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .badge-user{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(255,255,255,0.12);
+      border:1px solid rgba(255,255,255,0.18);
+      padding:7px 14px;
+      border-radius:50px;
+      font-size:13px;
+      font-weight:600;
+    }
+    .dot-live{
+      width:8px;height:8px;
+      background:#22c55e;
+      border-radius:50%;
+      animation:pulse 2s infinite;
+    }
+    @keyframes pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}
+      50%{box-shadow:0 0 0 6px rgba(34,197,94,0)}
+    }
+    .btn-logout{
+      background:rgba(220,38,38,.2);
+      border:1px solid rgba(220,38,38,.4);
+      color:#fca5a5;
+      padding:7px 14px;
+      border-radius:8px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      text-decoration:none;
+      transition:all .2s;
+    }
+    .btn-logout:hover{background:rgba(220,38,38,.35);}
+
+    /* ═══ MAIN CONTAINER ═══ */
+    .main{
+      max-width:1300px;
+      margin:0 auto;
+      padding:28px 20px 40px;
+    }
+
+    /* ═══ PAGE HEADER ═══ */
+    .page-header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:16px;
+      margin-bottom:28px;
+    }
+    .page-header h1{
+      font-size:28px;
+      font-weight:900;
+      color:#fff;
+      line-height:1.2;
+    }
+    .page-header h1 span{
+      background:linear-gradient(135deg,#63b3ed,#a78bfa);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .page-header p{
+      font-size:14px;
+      color:rgba(255,255,255,.6);
+      margin-top:4px;
+    }
+    .clock{
+      font-size:13px;
+      color:rgba(255,255,255,.5);
+      text-align:right;
+    }
+    .clock strong{
+      display:block;
+      font-size:22px;
+      font-weight:800;
+      color:#fff;
+      letter-spacing:2px;
+    }
+
+    /* ═══ KPI CARDS ═══ */
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:14px;
+      margin-bottom:28px;
+    }
+    .kpi-card{
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.12);
+      backdrop-filter:blur(8px);
+      border-radius:16px;
+      padding:18px 20px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      transition:transform .2s, background .2s;
+    }
+    .kpi-card:hover{
+      background:rgba(255,255,255,0.13);
+      transform:translateY(-2px);
+    }
+    .kpi-icon{font-size:24px;}
+    .kpi-val{
+      font-size:30px;
+      font-weight:900;
+      line-height:1;
+    }
+    .kpi-label{font-size:12px;color:rgba(255,255,255,.65);font-weight:500;}
+    .kpi-card.libre .kpi-val{color:#4ade80;}
+    .kpi-card.ocupada .kpi-val{color:#fbbf24;}
+    .kpi-card.visitante .kpi-val{color:#60a5fa;}
+    .kpi-card.discapacidad .kpi-val{color:#c084fc;}
+
+    /* ═══ LEYENDA ═══ */
+    .leyenda{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:20px;
+      align-items:center;
+    }
+    .leyenda-item{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      font-size:12px;
+      font-weight:600;
+      color:rgba(255,255,255,.75);
+    }
+    .leyenda-dot{
+      width:14px;height:14px;
+      border-radius:4px;
+    }
+
+    /* ═══ ZONA SECTION ═══ */
+    .zona{
+      margin-bottom:32px;
+    }
+    .zona-header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .zona-badge{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      padding:5px 14px;
+      border-radius:50px;
+      background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.18);
+    }
+    .zona-header hr{
+      flex:1;
+      border:none;
+      border-top:1px solid rgba(255,255,255,0.12);
+    }
+    .zona-count{
+      font-size:12px;
+      color:rgba(255,255,255,.5);
+    }
+
+    /* ═══ GRID DE CELDAS ═══ */
+    .celdas-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+      gap:12px;
+    }
+
+    /* ═══ CELDA ═══ */
+    .celda{
+      border-radius:16px;
+      padding:14px 12px 12px;
+      position:relative;
+      cursor:pointer;
+      transition:transform .25s, box-shadow .25s;
+      border:2px solid transparent;
+      overflow:hidden;
+    }
+    .celda:hover{
+      transform:translateY(-4px) scale(1.02);
+      box-shadow:0 12px 32px rgba(0,0,0,.35);
+    }
+    .celda:active{transform:scale(.98);}
+
+    /* estados de celda */
+    .celda.libre{
+      background:var(--celda-libre);
+      border-color:#bbf7d0;
+    }
+    .celda.ocupada{
+      background:var(--celda-ocupada);
+      border-color:#fde68a;
+    }
+    .celda.visitante{
+      background:var(--celda-visitante);
+      border-color:#bfdbfe;
+    }
+    .celda.discapacidad{
+      background:var(--celda-discapacidad);
+      border-color:#e9d5ff;
+    }
+
+    /* número de celda */
+    .celda-num{
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+    .libre .celda-num{color:#166534;}
+    .ocupada .celda-num{color:#92400e;}
+    .visitante .celda-num{color:#1e40af;}
+    .discapacidad .celda-num{color:#6b21a8;}
+
+    /* ═══ CAR SVG ═══ */
+    .car-wrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:62px;
+      position:relative;
+    }
+
+    /* Carro SVG inline — se genera via JS con color dinámico */
+    .car-svg{
+      width:100%;
+      max-width:110px;
+      filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+    }
+
+    /* Animación de entrada del carro */
+    .celda.ocupada .car-svg,
+    .celda.visitante .car-svg{
+      animation:carDrive .6s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes carDrive{
+      from{transform:translateX(-40px);opacity:0;}
+      to{transform:translateX(0);opacity:1;}
+    }
+
+    /* Brillo animado en las ventanas */
+    .car-window-shine{
+      animation:shine 3s ease-in-out infinite;
+    }
+    @keyframes shine{
+      0%,100%{opacity:.6;}
+      50%{opacity:1;}
+    }
+
+    /* Ruedas girando */
+    .wheel-spin{
+      transform-origin:center;
+      animation:wheelSpin 1.2s linear infinite;
+    }
+    @keyframes wheelSpin{
+      from{transform:rotate(0deg);}
+      to{transform:rotate(360deg);}
+    }
+
+    /* celda libre — líneas de vacío */
+    .libre-lines{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      justify-content:center;
+      align-items:center;
+      height:62px;
+    }
+    .libre-line{
+      width:70%;
+      height:3px;
+      background:#bbf7d0;
+      border-radius:2px;
+      animation:breathe 2.5s ease-in-out infinite;
+    }
+    .libre-line:nth-child(2){width:50%;animation-delay:.4s;}
+    .libre-line:nth-child(3){width:60%;animation-delay:.8s;}
+    @keyframes breathe{
+      0%,100%{opacity:.4;}
+      50%{opacity:.9;}
+    }
+
+    /* ♿ ícono discapacidad vacío */
+    .disc-icon{
+      font-size:32px;
+      display:flex;align-items:center;justify-content:center;
+      height:62px;
+      animation:breathe 2s ease-in-out infinite;
+      opacity:.4;
+    }
+
+    /* Placa */
+    .celda-placa{
+      font-size:11px;
+      font-weight:800;
+      text-align:center;
+      margin-top:8px;
+      letter-spacing:2px;
+      padding:3px 8px;
+      border-radius:6px;
+      background:rgba(0,0,0,0.08);
+    }
+    .ocupada .celda-placa{color:#92400e;}
+    .visitante .celda-placa{color:#1e40af;}
+    .discapacidad .celda-placa{color:#6b21a8;}
+
+    /* Hora entrada */
+    .celda-hora{
+      font-size:10px;
+      text-align:center;
+      margin-top:3px;
+      color:rgba(0,0,0,0.4);
+      font-weight:500;
+    }
+
+    /* Etiqueta visitante */
+    .celda-tag{
+      position:absolute;
+      top:8px;
+      right:8px;
+      font-size:9px;
+      font-weight:800;
+      padding:2px 6px;
+      border-radius:4px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    .visitante .celda-tag{background:#dbeafe;color:#1e40af;}
+    .discapacidad .celda-tag{background:#ede9fe;color:#6b21a8;}
+
+    /* ═══ MODAL DETALLE CELDA ═══ */
+    .overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(4px);
+      z-index:200;
+      justify-content:center;
+      align-items:center;
+    }
+    .overlay.open{display:flex;}
+    .modal{
+      background:#fff;
+      color:#1e2d3d;
+      border-radius:24px;
+      padding:28px;
+      max-width:380px;
+      width:90%;
+      position:relative;
+      animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes modalIn{
+      from{opacity:0;transform:scale(.85);}
+      to{opacity:1;transform:scale(1);}
+    }
+    .modal-close{
+      position:absolute;
+      top:16px;right:16px;
+      background:#f1f5f9;
+      border:none;
+      width:32px;height:32px;
+      border-radius:50%;
+      font-size:16px;
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .modal-title{
+      font-size:20px;
+      font-weight:900;
+      margin-bottom:16px;
+    }
+    .modal-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:9px 0;
+      border-bottom:1px solid #f1f5f9;
+      font-size:13px;
+    }
+    .modal-row:last-child{border-bottom:none;}
+    .modal-row span:first-child{color:#64748b;font-weight:500;}
+    .modal-row span:last-child{font-weight:700;color:#0f172a;}
+    .modal-estado{
+      display:inline-block;
+      padding:4px 12px;
+      border-radius:50px;
+      font-size:12px;
+      font-weight:800;
+    }
+    .modal-btn{
+      display:block;
+      width:100%;
+      margin-top:18px;
+      padding:12px;
+      border-radius:12px;
+      border:none;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      transition:all .2s;
+    }
+    .modal-btn.liberar{
+      background:linear-gradient(135deg,#dc2626,#b91c1c);
+      color:#fff;
+    }
+    .modal-btn.liberar:hover{background:linear-gradient(135deg,#b91c1c,#991b1b);}
+    .modal-btn.ocupar{
+      background:linear-gradient(135deg,var(--azul),#0d47a1);
+      color:#fff;
+    }
+    .modal-btn.ocupar:hover{opacity:.9;}
+
+    /* ═══ TOAST ═══ */
+    .toast{
+      position:fixed;
+      bottom:28px;
+      left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:#1e293b;
+      color:#fff;
+      padding:12px 24px;
+      border-radius:50px;
+      font-size:14px;
+      font-weight:600;
+      z-index:999;
+      transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+      white-space:nowrap;
+      pointer-events:none;
+    }
+    .toast.show{transform:translateX(-50%) translateY(0);}
+
+    /* ═══ RESPONSIVE ═══ */
+    @media(max-width:600px){
+      .navbar{padding:12px 16px;}
+      .main{padding:20px 12px 32px;}
+      .celdas-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+      .page-header h1{font-size:22px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="ParkControl.png" alt="ParkControl">
+    <span>ParkControl</span>
+  </div>
+  <div class="navbar-right">
+    <div class="badge-user">
+      <div class="dot-live"></div>
+      <span id="nombreUsuario">Administrador</span>
+    </div>
+    <a href="index.html" class="btn-logout">Cerrar sesión</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>Mapa de <span>Parqueadero</span></h1>
+      <p>Conjunto Residencial · 30 celdas · Zonas A, B y C</p>
+    </div>
+    <div class="clock">
+      <strong id="reloj">--:--:--</strong>
+      <span id="fecha">...</span>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card libre">
+      <div class="kpi-icon">🟢</div>
+      <div class="kpi-val" id="cnt-libre">0</div>
+      <div class="kpi-label">Celdas Libres</div>
+    </div>
+    <div class="kpi-card ocupada">
+      <div class="kpi-icon">🚗</div>
+      <div class="kpi-val" id="cnt-ocupada">0</div>
+      <div class="kpi-label">Ocupadas</div>
+    </div>
+    <div class="kpi-card visitante">
+      <div class="kpi-icon">🔵</div>
+      <div class="kpi-val" id="cnt-visitante">0</div>
+      <div class="kpi-label">Visitantes</div>
+    </div>
+    <div class="kpi-card discapacidad">
+      <div class="kpi-icon">♿</div>
+      <div class="kpi-val" id="cnt-disc">0</div>
+      <div class="kpi-label">Discapacidad</div>
+    </div>
+  </div>
+
+  <!-- LEYENDA -->
+  <div class="leyenda">
+    <div class="leyenda-item"><div class="leyenda-dot" style="background:#4ade80"></div>Libre</div>
+    <div class="leyenda-item"><div class="leyenda-dot" style="background:#fbbf24"></div>Residente</div>
+    <div class="leyenda-item"><div class="leyenda-dot" style="background:#60a5fa"></div>Visitante</div>
+    <div class="leyenda-item"><div class="leyenda-dot" style="background:#c084fc"></div>Discapacidad</div>
+    <span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.45)">Clic en una celda para ver detalles</span>
+  </div>
+
+  <!-- ZONA A -->
+  <div class="zona">
+    <div class="zona-header">
+      <div class="zona-badge">🅰️ Zona A</div>
+      <hr>
+      <div class="zona-count">Celdas A-01 a A-10</div>
+    </div>
+    <div class="celdas-grid" id="zona-A"></div>
+  </div>
+
+  <!-- ZONA B -->
+  <div class="zona">
+    <div class="zona-header">
+      <div class="zona-badge">🅱️ Zona B</div>
+      <hr>
+      <div class="zona-count">Celdas B-01 a B-10</div>
+    </div>
+    <div class="celdas-grid" id="zona-B"></div>
+  </div>
+
+  <!-- ZONA C -->
+  <div class="zona">
+    <div class="zona-header">
+      <div class="zona-badge">🅾️ Zona C</div>
+      <hr>
+      <div class="zona-count">Celdas C-01 a C-10</div>
+    </div>
+    <div class="celdas-grid" id="zona-C"></div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="cerrarModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="cerrarModal()">✕</button>
+    <div class="modal-title" id="modal-titulo">Celda A-01</div>
+    <div id="modal-body"></div>
+    <button class="modal-btn" id="modal-accion" onclick="toggleCelda()"></button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATOS DE PARQUEADERO
+// ══════════════════════════════════════════════
+
+// Colores de carros por zona/tipo (HSL)
+const COLORES_CARROS = [
+  '#e53e3e','#dd6b20','#d69e2e','#38a169','#2b6cb0',
+  '#553c9a','#b7791f','#2c7a7b','#9b2c2c','#276749',
+  '#1a365d','#44337a','#c05621','#2d3748','#4a5568',
+];
+
+// SVG de carro visto desde arriba (top-view)
+function carroSVG(color, tipo = 'sedan') {
+  // Colores derivados
+  const bodyColor = color;
+  const darkColor = shadeColor(color, -30);
+  const lightColor = shadeColor(color, 30);
+
+  if (tipo === 'suv') {
+    return `<svg class="car-svg" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sombra -->
+      <ellipse cx="50" cy="47" rx="38" ry="4" fill="rgba(0,0,0,0.15)"/>
+      <!-- Carrocería SUV -->
+      <rect x="8" y="10" width="84" height="30" rx="8" fill="${bodyColor}"/>
+      <!-- Techo -->
+      <rect x="20" y="13" width="60" height="22" rx="5" fill="${darkColor}"/>
+      <!-- Parabrisas delantero -->
+      <rect x="62" y="14" width="16" height="10" rx="3" fill="rgba(180,230,255,0.85)" class="car-window-shine"/>
+      <!-- Vidrios laterales -->
+      <rect x="22" y="14" width="12" height="10" rx="2" fill="rgba(180,230,255,0.75)" class="car-window-shine"/>
+      <rect x="37" y="14" width="12" height="10" rx="2" fill="rgba(180,230,255,0.75)" class="car-window-shine"/>
+      <rect x="52" y="14" width="8" height="10" rx="2" fill="rgba(180,230,255,0.75)" class="car-window-shine"/>
+      <!-- Vidrios traseros -->
+      <rect x="22" y="26" width="12" height="8" rx="2" fill="rgba(180,230,255,0.6)" class="car-window-shine"/>
+      <rect x="37" y="26" width="22" height="8" rx="2" fill="rgba(180,230,255,0.6)" class="car-window-shine"/>
+      <!-- Faros delanteros -->
+      <rect x="88" y="12" width="6" height="6" rx="2" fill="#fffde7"/>
+      <rect x="88" y="30" width="6" height="6" rx="2" fill="#fffde7"/>
+      <!-- Faros traseros -->
+      <rect x="6" y="13" width="6" height="5" rx="2" fill="#ff6b6b"/>
+      <rect x="6" y="30" width="6" height="5" rx="2" fill="#ff6b6b"/>
+      <!-- Ruedas -->
+      <g class="wheel-spin" style="transform-origin:14px 13px"><circle cx="14" cy="13" r="6" fill="#222"/><circle cx="14" cy="13" r="3" fill="#555"/></g>
+      <g class="wheel-spin" style="transform-origin:14px 37px"><circle cx="14" cy="37" r="6" fill="#222"/><circle cx="14" cy="37" r="3" fill="#555"/></g>
+      <g class="wheel-spin" style="transform-origin:86px 13px"><circle cx="86" cy="13" r="6" fill="#222"/><circle cx="86" cy="13" r="3" fill="#555"/></g>
+      <g class="wheel-spin" style="transform-origin:86px 37px"><circle cx="86" cy="37" r="6" fill="#222"/><circle cx="86" cy="37" r="3" fill="#555"/></g>
+    </svg>`;
+  }
+  // sedan / default
+  return `<svg class="car-svg" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sombra -->
+    <ellipse cx="50" cy="47" rx="36" ry="3.5" fill="rgba(0,0,0,0.13)"/>
+    <!-- Carrocería -->
+    <rect x="10" y="14" width="80" height="22" rx="7" fill="${bodyColor}"/>
+    <!-- Techo aerodinámico -->
+    <path d="M28 14 Q35 5 65 5 Q75 5 80 14 Z" fill="${darkColor}"/>
+    <!-- Parabrisas delantero -->
+    <path d="M65 14 Q70 6 78 8 L80 14 Z" fill="rgba(180,230,255,0.85)" class="car-window-shine"/>
+    <!-- Parabrisas trasero -->
+    <path d="M20 14 Q25 6 32 7 L28 14 Z" fill="rgba(180,230,255,0.75)" class="car-window-shine"/>
+    <!-- Ventanas laterales -->
+    <path d="M36 13 L45 6 L62 6 L66 13 Z" fill="rgba(180,230,255,0.8)" class="car-window-shine"/>
+    <!-- Faros delanteros LED -->
+    <rect x="87" y="16" width="5" height="4" rx="2" fill="#fffde7"/>
+    <rect x="87" y="28" width="5" height="4" rx="2" fill="#fffde7"/>
+    <!-- Faros traseros -->
+    <rect x="8" y="17" width="5" height="4" rx="2" fill="#ff6b6b"/>
+    <rect x="8" y="27" width="5" height="4" rx="2" fill="#ff6b6b"/>
+    <!-- Capó detalles -->
+    <rect x="72" y="17" width="12" height="12" rx="3" fill="${lightColor}" opacity=".4"/>
+    <!-- Rejilla delantera -->
+    <rect x="88" y="22" width="4" height="6" rx="1" fill="#333" opacity=".8"/>
+    <!-- Ruedas -->
+    <g class="wheel-spin" style="transform-origin:20px 14px"><circle cx="20" cy="14" r="6" fill="#1a1a1a"/><circle cx="20" cy="14" r="2.5" fill="#666"/></g>
+    <g class="wheel-spin" style="transform-origin:20px 36px"><circle cx="20" cy="36" r="6" fill="#1a1a1a"/><circle cx="20" cy="36" r="2.5" fill="#666"/></g>
+    <g class="wheel-spin" style="transform-origin:80px 14px"><circle cx="80" cy="14" r="6" fill="#1a1a1a"/><circle cx="80" cy="14" r="2.5" fill="#666"/></g>
+    <g class="wheel-spin" style="transform-origin:80px 36px"><circle cx="80" cy="36" r="6" fill="#1a1a1a"/><circle cx="80" cy="36" r="2.5" fill="#666"/></g>
+  </svg>`;
+}
+
+function shadeColor(col, percent) {
+  let R = parseInt(col.slice(1,3),16);
+  let G = parseInt(col.slice(3,5),16);
+  let B = parseInt(col.slice(5,7),16);
+  R = Math.min(255,Math.max(0,R+Math.round(2.55*percent)));
+  G = Math.min(255,Math.max(0,G+Math.round(2.55*percent)));
+  B = Math.min(255,Math.max(0,B+Math.round(2.55*percent)));
+  return '#'+((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1);
+}
+
+// Generar placa colombiana aleatoria
+function placaRandom() {
+  const letras = 'ABCDEFGHJKLMNPRSTUVWXYZ';
+  const nums = '0123456789';
+  return [letras,letras,letras].map(l=>l[Math.floor(Math.random()*l.length)]).join('') +
+         '-' + [nums,nums,nums].map(n=>n[Math.floor(Math.random()*n.length)]).join('');
+}
+
+// Generar datos de celdas
+function generarCeldas(zona, cantidad) {
+  const estados = ['ocupada','ocupada','ocupada','libre','libre','visitante'];
+  return Array.from({length:cantidad},(_,i)=>{
+    const num = String(i+1).padStart(2,'0');
+    const id  = `${zona}-${num}`;
+    const esDisc = (zona==='C' && i===0);
+    const estado = esDisc ? 'discapacidad' : estados[Math.floor(Math.random()*estados.length)];
+    const colorIdx = Math.floor(Math.random()*COLORES_CARROS.length);
+    const tipo = Math.random()>.5?'suv':'sedan';
+    const hora = `${String(Math.floor(Math.random()*8+8)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`;
+    const apto = `${Math.floor(Math.random()*12+1)}-${String(Math.floor(Math.random()*4+1)).padStart(2,'0')}`;
+    return {
+      id, zona, num, estado,
+      placa: estado!=='libre' && estado!=='discapacidad' ? placaRandom() : null,
+      color: COLORES_CARROS[colorIdx],
+      tipo,
+      hora: estado!=='libre' ? hora : null,
+      apto: estado==='ocupada' ? apto : null,
+    };
+  });
+}
+
+const CELDAS = {
+  A: generarCeldas('A', 10),
+  B: generarCeldas('B', 10),
+  C: generarCeldas('C', 10),
+};
+
+let celdaActual = null;
+
+// ══════════════════════════════════════════════
+//  RENDER CELDAS
+// ══════════════════════════════════════════════
+function renderCelda(c) {
+  const div = document.createElement('div');
+  div.className = `celda ${c.estado}`;
+  div.id = `celda-${c.id}`;
+  div.onclick = () => abrirModal(c.id);
+
+  // Número
+  const num = document.createElement('div');
+  num.className = 'celda-num';
+  num.textContent = c.id;
+  div.appendChild(num);
+
+  // Tag especial
+  if (c.estado==='visitante') {
+    const tag = document.createElement('div');
+    tag.className='celda-tag';
+    tag.textContent='Visitante';
+    div.appendChild(tag);
+  }
+  if (c.estado==='discapacidad') {
+    const tag = document.createElement('div');
+    tag.className='celda-tag';
+    tag.textContent='♿';
+    div.appendChild(tag);
+  }
+
+  // Contenido visual
+  const wrap = document.createElement('div');
+  wrap.className = 'car-wrap';
+
+  if (c.estado==='libre') {
+    wrap.innerHTML = `<div class="libre-lines"><div class="libre-line"></div><div class="libre-line"></div><div class="libre-line"></div></div>`;
+  } else if (c.estado==='discapacidad') {
+    wrap.innerHTML = `<div class="disc-icon">♿</div>`;
+  } else {
+    wrap.innerHTML = carroSVG(c.color, c.tipo);
+  }
+  div.appendChild(wrap);
+
+  // Placa
+  if (c.placa) {
+    const placa = document.createElement('div');
+    placa.className = 'celda-placa';
+    placa.textContent = c.placa;
+    div.appendChild(placa);
+    if (c.hora) {
+      const hora = document.createElement('div');
+      hora.className = 'celda-hora';
+      hora.textContent = `Ingresó: ${c.hora}`;
+      div.appendChild(hora);
+    }
+  }
+
+  return div;
+}
+
+function renderZona(zona) {
+  const container = document.getElementById(`zona-${zona}`);
+  container.innerHTML = '';
+  CELDAS[zona].forEach(c => container.appendChild(renderCelda(c)));
+}
+
+function actualizarKPIs() {
+  const todas = [...CELDAS.A,...CELDAS.B,...CELDAS.C];
+  document.getElementById('cnt-libre').textContent   = todas.filter(c=>c.estado==='libre').length;
+  document.getElementById('cnt-ocupada').textContent = todas.filter(c=>c.estado==='ocupada').length;
+  document.getElementById('cnt-visitante').textContent=todas.filter(c=>c.estado==='visitante').length;
+  document.getElementById('cnt-disc').textContent    = todas.filter(c=>c.estado==='discapacidad').length;
+}
+
+// ══════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════
+function buscarCelda(id) {
+  return [...CELDAS.A,...CELDAS.B,...CELDAS.C].find(c=>c.id===id);
+}
+
+function abrirModal(id) {
+  const c = buscarCelda(id);
+  celdaActual = id;
+
+  document.getElementById('modal-titulo').textContent = `Celda ${c.id}`;
+
+  const estadoColors = {
+    libre:'background:#dcfce7;color:#166534',
+    ocupada:'background:#fef9c3;color:#854d0e',
+    visitante:'background:#dbeafe;color:#1e40af',
+    discapacidad:'background:#f3e8ff;color:#6b21a8',
+  };
+  const estadoLabels = {libre:'Libre',ocupada:'Ocupada · Residente',visitante:'Visitante',discapacidad:'Discapacidad'};
+
+  let rows = `
+    <div class="modal-row">
+      <span>Estado</span>
+      <span class="modal-estado" style="${estadoColors[c.estado]}">${estadoLabels[c.estado]}</span>
+    </div>
+    <div class="modal-row"><span>Zona</span><span>Zona ${c.zona}</span></div>
+  `;
+  if (c.placa)  rows += `<div class="modal-row"><span>Placa</span><span>${c.placa}</span></div>`;
+  if (c.hora)   rows += `<div class="modal-row"><span>Ingreso</span><span>${c.hora}</span></div>`;
+  if (c.apto)   rows += `<div class="modal-row"><span>Apartamento</span><span>${c.apto}</span></div>`;
+  if (c.color && c.estado!=='libre')
+    rows += `<div class="modal-row"><span>Color vehículo</span><span><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${c.color};vertical-align:middle;margin-right:5px"></span>${c.color}</span></div>`;
+
+  document.getElementById('modal-body').innerHTML = rows;
+
+  const btn = document.getElementById('modal-accion');
+  if (c.estado==='libre' || c.estado==='discapacidad') {
+    btn.className = 'modal-btn ocupar';
+    btn.textContent = '🚗 Registrar ingreso';
+  } else {
+    btn.className = 'modal-btn liberar';
+    btn.textContent = '✅ Registrar salida';
+  }
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function cerrarModal(e) {
+  if (!e || e.target===document.getElementById('overlay')) {
+    document.getElementById('overlay').classList.remove('open');
+    celdaActual = null;
+  }
+}
+
+function toggleCelda() {
+  if (!celdaActual) return;
+  const c = buscarCelda(celdaActual);
+  const zona = c.zona;
+  const idx  = CELDAS[zona].findIndex(x=>x.id===celdaActual);
+
+  if (c.estado==='libre' || c.estado==='discapacidad') {
+    CELDAS[zona][idx] = {
+      ...c,
+      estado: c.estado==='discapacidad'?'discapacidad':'ocupada',
+      placa: placaRandom(),
+      color: COLORES_CARROS[Math.floor(Math.random()*COLORES_CARROS.length)],
+      tipo: Math.random()>.5?'suv':'sedan',
+      hora: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    };
+    if (c.estado==='discapacidad') CELDAS[zona][idx].estado = 'discapacidad';
+    else CELDAS[zona][idx].estado = 'ocupada';
+    mostrarToast(`🚗 Vehículo registrado en ${celdaActual}`);
+  } else {
+    CELDAS[zona][idx] = {...c, estado: c.estado==='discapacidad'?'discapacidad':'libre', placa:null, hora:null, apto:null, color:null};
+    if (c.estado==='discapacidad') CELDAS[zona][idx].estado='discapacidad';
+    mostrarToast(`✅ Celda ${celdaActual} liberada`);
+  }
+
+  document.getElementById('overlay').classList.remove('open');
+  celdaActual = null;
+
+  renderZona(zona);
+  actualizarKPIs();
+}
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════
+//  RELOJ
+// ══════════════════════════════════════════════
+function actualizarReloj() {
+  const now = new Date();
+  document.getElementById('reloj').textContent = now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('fecha').textContent = now.toLocaleDateString('es-CO',{weekday:'long',day:'2-digit',month:'long'});
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+(function init() {
+  // Leer usuario de localStorage (si viene del login)
+  try {
+    const user = JSON.parse(localStorage.getItem('parkcontrol_user'));
+    if (user) document.getElementById('nombreUsuario').textContent = user.nombre;
+  } catch(e) {}
+
+  renderZona('A');
+  renderZona('B');
+  renderZona('C');
+  actualizarKPIs();
+  actualizarReloj();
+  setInterval(actualizarReloj, 1000);
+})();
+</script>
+</body>
+</html>
